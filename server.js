@@ -19,8 +19,10 @@ var googleAPI = "https://www.googleapis.com/customsearch/v1?key=" + APIKey
   + "&fields=items(link,snippet,image(thumbnailLink,contextLink))"
   + "&q=";
 
+
 //send the .ccs and .js files to the client
 app.use(express.static("public"));
+
 
 //register the time of the request
 var date
@@ -45,6 +47,7 @@ app.get("/search", function(req, res){
   })
   
   //then, forward the request to google
+
   
   var offset = parseInt(req.query.offset);   
 
@@ -96,6 +99,7 @@ app.get("/search", function(req, res){
     }
           
   }
+
 
 });
 
