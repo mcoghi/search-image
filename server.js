@@ -18,7 +18,11 @@ var googleAPI = "https://www.googleapis.com/customsearch/v1?key=" + APIKey
   + "&searchType=image" 
   + "&fields=items(link,snippet,image(thumbnailLink,contextLink))"
   + "&q=";
-var search = googleAPI + "lolcats" ;
+
+
+//send the .ccs and .js files to the client
+app.use(express.static("public"));
+
 
 //register the time of the request
 var date
@@ -43,15 +47,60 @@ app.get("/search", function(req, res){
   })
   
   //then, forward the request to google
-  var offset = req.query.offset;
-  res.send("hi");
-  /*
-  //send query to google
-  request(search, function(err, response, body){
-    if (err) throw err;
-    res.send(JSON.parse(body))
-  })
-  */
+
+  
+  var offset = parseInt(req.query.offset);   
+
+  //if the user didn't specify a number of results or a negative number, show 10
+  if (!offset || offset < 0) offset = 10;
+  else if (offset > 100) offset = 100; //never give more than 100 results
+    
+  var result = []; //initialize an array to store the results of the search
+  var search; //this will store the search query for the google api
+  var total = Math.ceil(offset / 10); //total number of google call necessary to satisfy the user
+  
+  //send query to google, asking for 10 results at the time
+  askGoogle(1);
+  
+  function askGoogle(iteration){
+    
+    console.log("iteration: " + iteration + " total: " + total)
+    
+    var start = 10*(iteration - 1) + 1; //set from where to start the query
+    
+    if (iteration > total){
+      
+      // if enough calls have been done, send the results to the user
+      res.send(result)
+      
+    } else {
+      
+      if (iteration == total){
+        
+        //during the last iteration may be asking for less than 10 results
+        var count = offset % 10;
+        if (count == 0) count = 10;
+        search = googleAPI + userReq + "&num=" + count + "&start=" + start;
+        
+      } else {
+        
+        //for each iteration except the last, ask for 10 results
+        search = googleAPI + userReq + "&num=10&start=" + start;
+        
+      }
+      
+      //forward the request to google
+      request(search, function(err, response, body){
+        if (err) throw err;
+        result.push(JSON.parse(body));
+        askGoogle(iteration + 1);
+      })
+      
+    }
+          
+  }
+
+
 });
 
 // give the query list
