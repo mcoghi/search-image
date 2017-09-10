@@ -71,7 +71,15 @@ app.get("/search", function(req, res){
     if (iteration > total){
       
       // if enough calls have been done, send the results to the user
-      res.send(result)
+      res.send(result.map(function(value){
+        
+        return {
+          link : value.link,
+          snippet : value.snippet,
+          context : value.image.contextLink,
+          thumbnail : value.image.thumbnailLink
+        }
+      }))
       
     } else {
       
@@ -92,7 +100,7 @@ app.get("/search", function(req, res){
       //forward the request to google
       request(search, function(err, response, body){
         if (err) throw err;
-        result.push(JSON.parse(body));
+        result = result.concat(JSON.parse(body).items);
         askGoogle(iteration + 1);
       })
       
